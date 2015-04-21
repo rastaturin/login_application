@@ -44,7 +44,9 @@ class Login extends Base {
 
         if (empty($errors)) {
             $this->user = $this->getUserRepository()->register($email, $pass, $name);
-            $this->sendActivation($this->user);
+            if (!$this->sendActivation($this->user)) {
+                throw new \Exception("can't send email");
+            }
             $this->render('registered');
         } else {
             $this->setVar('error', join(' ', $errors));
@@ -85,10 +87,10 @@ class Login extends Base {
     protected function sendActivation(User $user)
     {
         $subject = "Activation";
-        $link = $_SERVER["REQUEST_SCHEME"] . '://' . $_SERVER["HTTP_HOST"] . $_SERVER["SCRIPT_NAME"] . "?action=activation&code=" . $user->getActivation();
+        $link = 'http://' . $_SERVER["HTTP_HOST"] . $_SERVER["SCRIPT_NAME"] . "?action=activation&code=" . $user->getActivation();
         $this->setVar('link', $link);
         $text = $this->renderPattern('activationMail');
-        $this->sendEmail($user->getEmail(), $subject, $text);
+        return $this->sendEmail($user->getEmail(), $subject, $text);
     }
 
     protected function sendEmail($email, $subj, $text)

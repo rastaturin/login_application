@@ -21,7 +21,7 @@ class UserRepository {
         $salt = rand(1000, 5000);
         $mdpass = User::mdpass($pass, $salt);
         $activation = md5(rand(0, PHP_INT_MAX) . time());
-        $query = "INSERT INTO USERS (email, name, mdpass, salt, activation) values ('$email', '$name', '$mdpass', '$salt', '$activation')";
+        $query = "INSERT INTO users (email, name, mdpass, salt, activation) values ('$email', '$name', '$mdpass', '$salt', '$activation')";
         $this->db->exec($query);
         return $this->load($email);
     }
@@ -32,12 +32,12 @@ class UserRepository {
      */
     public function load($email)
     {
-        return $this->db->select("SELECT * FROM USERS WHERE email = '$email'", 'Application\Model\User');
+        return $this->db->select("SELECT * FROM users WHERE email = '$email'", 'Application\Model\User');
     }
 
     public function activate($activation)
     {
-        $this->db->exec("UPDATE USERS SET active=1 where activation = '$activation'");
+        $this->db->exec("UPDATE users SET active=1 where activation = '$activation'");
     }
 
 }

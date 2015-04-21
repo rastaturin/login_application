@@ -10,7 +10,7 @@ class DB {
         $host = isset($conf['port']) ? $conf['host'] . ':' . $conf['port'] : $conf['host'];
         $this->conn = new \mysqli($host, $conf['user'], $conf['pass'], $conf['name']);
         if ($this->conn->connect_errno) {
-            throw new \Exception($this->conn->connect_errno);
+            throw new \Exception($this->conn->connect_error);
         }
         $this->conn->set_charset("utf8");
     }
@@ -23,6 +23,9 @@ class DB {
     public function select($query, $class)
     {
         $result = $this->conn->query($query);
+        if (!$result) {
+            throw new \Exception($this->conn->connect_error. $query);
+        }
         return $result->fetch_object($class);
     }
 
