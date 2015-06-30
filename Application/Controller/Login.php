@@ -26,30 +26,29 @@ class Login extends Base {
         $name = $this->param('name');
         $pass = $this->param('password');
 
-        $errors = [];
-        if (empty($email)) {
-            $errors[] = 'Email is empty!';
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors[] = 'Email is invalid!';
-        }
-        if (empty($name)) {
-            $errors[] = 'Name is empty!';
-        }
-        if (empty($pass)) {
-            $errors[] = 'Password is empty!';
-        }
-        if ($this->getUserRepository()->load($email)) {
-            $errors[] = "Email $email is already used!";
-        }
+        try {
+            if (empty($email)) {
+                throw new \InvalidArgumentException('Email is empty!');
+            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                throw new \InvalidArgumentException('Email is invalid!');
+            }
+            if (empty($name)) {
+                throw new \InvalidArgumentException('Name is empty!');
+            }
+            if (empty($pass)) {
+                throw new \InvalidArgumentException('Password is empty!');
+            }
+            if ($this->getUserRepository()->load($email)) {
+                throw new \InvalidArgumentException("Email $email is already used!");
+            }
 
-        if (empty($errors)) {
             $this->user = $this->getUserRepository()->register($email, $pass, $name);
             if (!$this->sendActivation($this->user)) {
                 throw new \Exception("can't send email");
             }
             $this->render('registered');
-        } else {
-            $this->setVar('error', join(' ', $errors));
+        } catch (\InvalidArgumentException $e) {
+            $this->setVar('error', $e->getMessage());
             $this->render('registerForm');
         }
     }
@@ -87,10 +86,15 @@ class Login extends Base {
     protected function sendActivation(User $user)
     {
         $subject = "Activation";
-        $link = 'http://' . $_SERVER["HTTP_HOST"] . $_SERVER["SCRIPT_NAME"] . "?action=activation&code=" . $user->getActivation();
+        $link = $this->generateLink($_SERVER["HTTP_HOST"] , $_SERVER["SCRIPT_NAME"], $user->getActivation());
         $this->setVar('link', $link);
         $text = $this->renderPattern('activationMail');
         return $this->sendEmail($user->getEmail(), $subject, $text);
+    }
+
+    protected function generateLink($host, $script, $code)
+    {
+        return sprintf('http://%s$s?action=activation&code=%s', $host, $script, $code);
     }
 
     protected function sendEmail($email, $subj, $text)

@@ -17,6 +17,7 @@ This is sample login / register application using PHP, MySQL, HTML/CSS, Javascri
 ```
 CREATE TABLE users
  (
+     id INT PRIMARY KEY NOT NULL AUTO_INCREMENT, 
      email VARCHAR(100) NOT NULL,
      name VARCHAR(100) NOT NULL,
      mdpass VARCHAR(32) NOT NULL,
